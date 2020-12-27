@@ -1,9 +1,9 @@
 import React from 'react';
 import { Button } from '@material-ui/core';
 
-const WeatherBtn = () => {
+const WeatherBtn = ({ handleClick }) => {
     return (
-        <Button color="primary" variant="contained">
+        <Button color="primary" variant="contained" onClick={handleClick}>
             Load Weather
         </Button>
     );
