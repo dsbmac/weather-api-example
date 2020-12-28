@@ -1,20 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import './App.css';
 import WeatherBtn from './components/WeatherBtn';
 
 const useStyles = makeStyles({
-    root: { justifyContent: 'center', alignItems: 'center', height: '100vh' }
+    root: { justifyContent: 'center', alignItems: 'center', height: '100vh' },
+    content: { justifyContent: 'center', alignItems: 'center' },
+    message: { wordWrap: 'break-word' },
+    item: { padding: '10px' }
 });
 
 function App() {
     const classes = useStyles();
-    const [weather, setWeather] = useState('');
+    const [timestamp, setTimestamp] = useState(null);
+    const [weather, setWeather] = useState({});
+    const [isError, setIsError] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [geoLocation, setGeoLocation] = useState(null);
     const openweathermapAPIKey = 'd1f89cad9083342bbd8c28d033e5388e';
 
+    const setError = (isErrorParam, errorMsg) => {
+        setIsError(isErrorParam);
+        setErrorMsg(errorMsg);
+    };
+
+    const handleClick = async () => {
+        try {
+            setError(false, '');
+            geoLocate();
+        } catch (error) {
+            setError(true, error);
+        }
+    };
+
     const fetchWeather = async (params) => {
-        const url = `http://api.openweathermap.org/data/2.5/forecast?id=524901&appid=${openweathermapAPIKey}`;
+        const url = `http://api.openweathermap.org/data/2.5/weather?lat=${geoLocation.latitude}&lon=${geoLocation.longitude}&appid=${openweathermapAPIKey}`;
 
         // Make a request for a user with a given ID
         axios
@@ -25,14 +46,17 @@ function App() {
             })
             .catch(function (error) {
                 // handle error
-                console.log(error);
-            })
-            .then(function () {
-                // always executed
+                setError(true, error);
             });
     };
+    // refreshes data upon button click
+    useEffect(() => {
+        if (timestamp != null && geoLocation != null) {
+            fetchWeather();
+        }
+    }, [geoLocation, timestamp]);
 
-    function geoLocate() {
+    async function geoLocate() {
         var options = {
             enableHighAccuracy: true,
             timeout: 5000,
@@ -41,26 +65,30 @@ function App() {
 
         function success(pos) {
             var crd = pos.coords;
-            const newMsg = `Your current position is:\n  Latitude : ${crd.latitude} Longitude: ${crd.longitude} (+/- ~${crd.accuracy}m).`;
-            setWeather(newMsg);
+            setGeoLocation(crd);
+            setTimestamp(Date.now());
         }
 
         function error(err) {
             const newMsg = `ERROR(${err.code}): ${err.message}`;
-            setWeather(newMsg);
+            setError(true, newMsg);
         }
 
-        navigator.geolocation.getCurrentPosition(success, error, options);
+        return navigator.geolocation.getCurrentPosition(success, error, options);
     }
 
     return (
         <div className="App">
             <Grid container className={classes.root}>
-                <Grid item xs={12}>
-                    <WeatherBtn handleClick={fetchWeather}></WeatherBtn>
-                </Grid>
-                <Grid item xs={12}>
-                    <Typography>{weather}</Typography>
+                <Grid container className={classes.content}>
+                    <Grid item xs={12} className={classes.item}>
+                        <WeatherBtn handleClick={handleClick}></WeatherBtn>
+                    </Grid>
+                    <Grid item xs={12} className={classes.item}>
+                        <Typography className={classes.message}>
+                            {isError ? errorMsg : JSON.stringify(weather.main)}
+                        </Typography>
+                    </Grid>
                 </Grid>
             </Grid>
         </div>
