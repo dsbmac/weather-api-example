@@ -18,7 +18,6 @@ function App() {
     const [isError, setIsError] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [geoLocation, setGeoLocation] = useState(null);
-    const openweathermapAPIKey = 'd1f89cad9083342bbd8c28d033e5388e';
 
     const setError = (isErrorParam, errorMsg) => {
         setIsError(isErrorParam);
@@ -35,7 +34,7 @@ function App() {
     };
 
     const fetchWeather = async (params) => {
-        const url = `http://api.openweathermap.org/data/2.5/weather?lat=${geoLocation.latitude}&lon=${geoLocation.longitude}&appid=${openweathermapAPIKey}`;
+        const url = `http://api.openweathermap.org/data/2.5/weather?lat=${geoLocation.latitude}&lon=${geoLocation.longitude}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
 
         // Make a request for a user with a given ID
         axios
