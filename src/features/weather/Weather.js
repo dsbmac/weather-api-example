@@ -7,7 +7,8 @@ import {
     increment,
     incrementByAmount,
     incrementAsync,
-    selectWeather
+    selectWeather,
+    fetchWeather
 } from './weatherSlice';
 import WeatherBtn from './WeatherBtn';
 
@@ -28,11 +29,6 @@ export function Weather() {
     const [errorMsg, setErrorMsg] = useState('');
     const [geoLocation, setGeoLocation] = useState(null);
 
-    const [timestamp, setTimestamp] = useState(null);
-    const [weather, setWeather] = useState({});
-    const [isError, setIsError] = useState(false);
-    const [errorMsg, setErrorMsg] = useState('');
-    const [geoLocation, setGeoLocation] = useState(null);
     const [textContent, setTextContent] = useState('');
 
     const setError = (isErrorParam, errorMsg) => {
@@ -61,28 +57,21 @@ export function Weather() {
         }
     };
 
-    const fetchWeather = async (params) => {
-        const url = `http://api.openweathermap.org/data/2.5/weather?lat=${geoLocation.latitude}&lon=${geoLocation.longitude}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
+    // const fetchWeather = async (params) => {
+    //     const url = `http://api.openweathermap.org/data/2.5/weather?lat=${geoLocation.latitude}&lon=${geoLocation.longitude}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
 
-        // Make a request for a user with a given ID
-        return axios
-            .get(url)
-            .then(function (response) {
-                // handle success
-                return response.data;
-            })
-            .catch(function (error) {
-                // handle error
-                setError(true, error);
-            });
-    };
-
-    const fetchWeatherV2 = async (location) => {
-        const url = `http://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
-
-        // Make a request for a user with a given ID
-        return axios.get(url);
-    };
+    //     // Make a request for a user with a given ID
+    //     return axios
+    //         .get(url)
+    //         .then(function (response) {
+    //             // handle success
+    //             return response.data;
+    //         })
+    //         .catch(function (error) {
+    //             // handle error
+    //             setError(true, error);
+    //         });
+    // };
 
     // refreshes data upon button click
     useEffect(() => {
@@ -90,18 +79,6 @@ export function Weather() {
             fetchWeather();
         }
     }, [geoLocation, timestamp]);
-
-    const handle = (promise) => {
-        return promise
-            .then((data) => [data, undefined])
-            .catch((error) => Promise.resolve([undefined, error]));
-    };
-
-    function getPosition(options) {
-        return new Promise((resolve, reject) =>
-            navigator.geolocation.getCurrentPosition(resolve, reject, options)
-        );
-    }
 
     async function geoLocate() {
         var options = {
@@ -124,81 +101,57 @@ export function Weather() {
         return navigator.geolocation.getCurrentPosition(success, error, options);
     }
 
-    const handleClick = async () => {
+    const handleClick = () => {
         try {
-            const weather = await getWeather();
-            setTextContent(JSON.stringify(weather.main));
+            dispatch(fetchWeather());
+            // setTextContent(JSON.stringify(weather.main));
         } catch (error) {
             setTextContent(error.message);
         }
     };
-    async function getWeather() {
-        let [location, locationErr] = await handle(getPosition());
-        if (locationErr) throw new Error('Could not locate user');
 
-        let [weatherResp, weatherErr] = await handle(fetchWeatherV2(location.coords));
-        if (weatherErr) {
-            throw new Error('Could not fetch weather');
-        }
-        return weatherResp.data;
-    }
-    
-    const setError = (isErrorParam, errorMsg) => {
-        setIsError(isErrorParam);
-        setErrorMsg(errorMsg);
-    };
+    // const fetchWeather = async (params) => {
+    //     const url = `http://api.openweathermap.org/data/2.5/weather?lat=${geoLocation.latitude}&lon=${geoLocation.longitude}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
 
-    const handleClick = async () => {
-        try {
-            setError(false, '');
-            geoLocate();
-        } catch (error) {
-            setError(true, error);
-        }
-    };
+    //     // Make a request for a user with a given ID
+    //     axios
+    //         .get(url)
+    //         .then(function (response) {
+    //             // handle success
+    //             setWeather(response.data);
+    //         })
+    //         .catch(function (error) {
+    //             // handle error
+    //             setError(true, error);
+    //         });
+    // };
+    // // refreshes data upon button click
+    // useEffect(() => {
+    //     if (timestamp != null && geoLocation != null) {
+    //         fetchWeather();
+    //     }
+    // }, [geoLocation, timestamp]);
 
-    const fetchWeather = async (params) => {
-        const url = `http://api.openweathermap.org/data/2.5/weather?lat=${geoLocation.latitude}&lon=${geoLocation.longitude}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
+    // async function geoLocate() {
+    //     var options = {
+    //         enableHighAccuracy: true,
+    //         timeout: 5000,
+    //         maximumAge: 0
+    //     };
 
-        // Make a request for a user with a given ID
-        axios
-            .get(url)
-            .then(function (response) {
-                // handle success
-                setWeather(response.data);
-            })
-            .catch(function (error) {
-                // handle error
-                setError(true, error);
-            });
-    };
-    // refreshes data upon button click
-    useEffect(() => {
-        if (timestamp != null && geoLocation != null) {
-            fetchWeather();
-        }
-    }, [geoLocation, timestamp]);
+    //     function success(pos) {
+    //         var crd = pos.coords;
+    //         setGeoLocation(crd);
+    //         setTimestamp(Date.now());
+    //     }
 
-    async function geoLocate() {
-        var options = {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        };
+    //     function error(err) {
+    //         const newMsg = `ERROR(${err.code}): ${err.message}`;
+    //         setError(true, newMsg);
+    //     }
 
-        function success(pos) {
-            var crd = pos.coords;
-            setGeoLocation(crd);
-            setTimestamp(Date.now());
-        }
-
-        function error(err) {
-            const newMsg = `ERROR(${err.code}): ${err.message}`;
-            setError(true, newMsg);
-        }
-
-        return navigator.geolocation.getCurrentPosition(success, error, options);
-    }
+    //     return navigator.geolocation.getCurrentPosition(success, error, options);
+    // }
 
     return (
         <Grid container className={classes.root}>

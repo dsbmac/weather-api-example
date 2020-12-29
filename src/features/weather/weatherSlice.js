@@ -1,4 +1,27 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+function getPosition(options) {
+    return new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, options)
+    );
+}
+
+async function getWeather() {
+    let [location, locationErr] = await handle(getPosition());
+    if (locationErr) throw new Error('Could not locate user');
+
+    let [weatherResp, weatherErr] = await handle(fetchWeatherV2(location.coords));
+    if (weatherErr) {
+        throw new Error('Could not fetch weather');
+    }
+    return weatherResp;
+}
+
+export const fetchWeather = createAsyncThunk('weather/fetchWeather', async () => {
+    const response = await getWeather();
+    return response.data;
+});
 
 export const weatherSlice = createSlice({
     name: 'weather',
@@ -20,19 +43,49 @@ export const weatherSlice = createSlice({
         incrementByAmount: (state, action) => {
             state.value += action.payload;
         }
+    },
+    extraReducers: {
+        [fetchWeather.fulfilled]: (state, action) => {
+            return action.payload;
+        },
+        [fetchWeather.rejected]: (state, action) => {
+            return action.payload;
+        }
     }
 });
 
 export const { increment, decrement, incrementByAmount } = weatherSlice.actions;
 
+const handle = (promise) => {
+    return promise
+        .then((data) => [data, undefined])
+        .catch((error) => Promise.resolve([undefined, error]));
+};
+
+const fetchWeatherV2 = async (location) => {
+    const url = `http://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
+
+    // Make a request for a user with a given ID
+    return axios.get(url);
+};
+
+
 // The function below is called a thunk and allows us to perform async logic. It
 // can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This
 // will call the thunk with the `dispatch` function as the first argument. Async
 // code can then be executed and other actions can be dispatched
-export const fetchWeatherAsync = () => (dispatch) => {
-    setTimeout(() => {
-        dispatch(incrementByAmount());
-    }, 1000);
+export const fetchWeatherAsync = () => async (dispatch) => {
+    // Make a request for a user with a location
+
+    // const url = `http://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
+    // return axios.get(url);
+
+    try {
+        const weather = await getWeather();
+        console.log(JSON.stringify(weather.main));
+    } catch (error) {
+        console.log(error.message);
+    }
 };
 
 // The function below is called a selector and allows us to select a value from
