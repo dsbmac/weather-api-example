@@ -7,7 +7,7 @@ import {
     increment,
     incrementByAmount,
     incrementAsync,
-    selectCount
+    selectWeather
 } from './weatherSlice';
 import WeatherBtn from './WeatherBtn';
 
@@ -19,12 +19,11 @@ const useStyles = makeStyles({
 });
 
 export function Weather() {
-    const count = useSelector(selectCount);
+    const weather = useSelector(selectWeather);
     const dispatch = useDispatch();
     const [incrementAmount, setIncrementAmount] = useState('2');
     const classes = useStyles();
     const [timestamp, setTimestamp] = useState(null);
-    const [weather, setWeather] = useState({});
     const [isError, setIsError] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [geoLocation, setGeoLocation] = useState(null);
