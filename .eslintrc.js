@@ -28,6 +28,6 @@ module.exports = {
     rules: {
         'prettier/prettier': ['warn', {}, { usePrettierrc: true }], // Use our .prettierrc file as source
         'react/prop-types': 'off',
-        'no-unused-vars': 'off'
+        'no-unused-vars': 'warn'
     }
 };
