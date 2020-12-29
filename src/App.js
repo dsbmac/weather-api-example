@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import './App.css';
-import WeatherBtn from './components/WeatherBtn';
+import WeatherBtn from './features/weather/WeatherBtn';
 
 const useStyles = makeStyles({
     root: { justifyContent: 'center', alignItems: 'center', height: '100vh' },
